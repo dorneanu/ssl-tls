@@ -84,16 +84,6 @@ int checkoptions (globalargs *args) {
         debug("URL: %s", args->url);
     }
 
-    // Check if server modus
-    if (args->server_addr) {
-        int ret;
-
-        ret = parse_server_addr(
-            args->server_addr,
-            &args->server_ip,
-            &args->server_port);
-    }
-
     // Check required options
     if (!args->url) {
         log_err("No URL specified.");

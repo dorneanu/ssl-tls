@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 
 #include "server.h"
+#include "connection.h"
 #include "log.h"
 
 
@@ -19,11 +20,75 @@ void *get_in_addr(struct sockaddr *sa) {
     }
 }
 
+char *read_line( int connection ) {
+  static int line_len = DEFAULT_LINE_LEN;
+  static char *line = NULL;
+  int size;
+  char c;    // must be c, not int
+  int pos = 0;
+
+  if (!line) {
+    line = malloc(line_len);
+  }
+
+  while ((size = recv(connection, &c, 1, 0 )) > 0) {
+    if ((c == '\n') && (line[pos - 1] == '\r')) {
+      line[pos - 1] = '\0';
+      break;
+    }
+    line[pos++] = c;
+
+    if (pos > line_len )
+    {
+      line_len *= 2;
+      line = realloc(line, line_len);
+    }
+  }
+
+  return line;
+}
+
+void send_success_response (int connection_sockfd) {
+    char response[BUFFER_SIZE];
+    sprintf(response, \
+        "HTTP/1.1 200 Success\r\n" \
+        "Connection: Close\r\n" \
+        "Content-Type: text/html\r\n\r\n" \
+        "<html><head><title>Simple</title></head><body>Boru</body></html>\r\n");
+    
+    // Send response
+    if (send(connection_sockfd, response, strlen(response), 0) < (ssize_t)strlen(response)) {
+        log_err("Failed sending response!");
+    }
+}
+
+void send_error_response (int connection_sockfd, int error_code) {
+    char response[BUFFER_SIZE];
+    sprintf(response, "HTTP/1.1 %d Error Occured\r\n\r\n", error_code);
+
+    // Send response
+    if (send(connection_sockfd, response, strlen(response), 0) < (ssize_t)strlen(response)) {
+        log_err("Failed sending response!");
+    }
+}
+
+void process_request (int connection_sockfd) {
+    char *http_method;
+    http_method = read_line(connection_sockfd);
+
+    if (strncmp(http_method, "GET", 3)) {
+        log_err("Unsupported HTTP method!");
+        send_error_response(connection_sockfd, 500);
+    } else {
+        while(strcmp(read_line(connection_sockfd), ""));
+        send_success_response(connection_sockfd);
+    }
+}
+
 int http_listen (char *server_hostname, int server_port) {
-    int listen_sockfd, connection_sockfd, status, yes=1;
+    int listen_sockfd = NULL, connection_sockfd, status, yes=1;
     char port[20];
     socklen_t sin_size;
-    struct sockaddr_in *server;
     struct addrinfo hints, *res, *p;
     struct sockaddr_storage client_addr; // client's address information
     char client[INET6_ADDRSTRLEN];
@@ -44,7 +109,7 @@ int http_listen (char *server_hostname, int server_port) {
     }
     
     // Loop through all results and bind to the first we can
-    for (p = res; p != NULL; p->ai_next) {
+    for (p = res; p != NULL; p = p->ai_next) {
 
         // Create socket
         if ((listen_sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
@@ -93,6 +158,8 @@ int http_listen (char *server_hostname, int server_port) {
         log_info("Got connection from: %s", client);
 
         // Process request
-        // process_request(connection_sockfd);
+        process_request(connection_sockfd);
     }
+
+    return 1;
 }

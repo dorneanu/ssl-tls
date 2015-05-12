@@ -78,7 +78,7 @@ int parse_proxy (char *proxy_spec, char **proxy_host, int *proxy_port,
 
 int parse_server_addr(char *server_addr, char **server_hostname, int *server_port)
 {
-    char *hostname_sep, *colon_sep;
+    char *hostname_sep;
 
     // Check for ":" in "<hostname>:<port>" string
     if ((hostname_sep = strchr(server_addr, ':'))) {
