@@ -10,6 +10,7 @@
 #include "ssl-tls.h"
 #include "log.h"
 #include "args.h"
+#include "server.h"
 #include "connection.h"
 
 /* Function declarations */
@@ -41,6 +42,9 @@ int main(int argc, char **argv) {
     args->proxy_host = NULL;
     args->proxy_username = NULL;
     args->proxy_password = NULL;
+    args->server_addr = NULL;
+    args->server_ip = NULL;
+    args->server_port = 0;
 
     // Get options
     getoptions(argc, argv, args);
@@ -48,6 +52,21 @@ int main(int argc, char **argv) {
     // Check options
     if ((opts = checkoptions(args))) {
         log_info("Alles gut");
+       
+        if (args->server_addr) {
+            // Check if server modus
+            if (parse_server_addr(
+                args->server_addr, 
+                &args->server_ip, 
+                &args->server_port) == -1) 
+            {
+                log_err("Failed parsing server addr!");
+                exit(1);
+            }
+
+            // Create server
+            http_listen(args->server_ip, args->server_port);
+        }
 
         // Parse URL
         if (parse_url(args->url, &host, &path) == -1) {

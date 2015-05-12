@@ -2,12 +2,20 @@
 #define SSL_TLS_H_
 
 typedef struct globalargs {
+    /* General settings */
     char *prog;
-    char *url;
-    char *proxy_uri;
     int port;
     int verbose;
     int debug;
+    
+    /* GET-Request settings */
+    char *url;
+    char *proxy_uri;
+
+    /* Server settings */
+    char *server_addr;
+    char *server_ip;
+    int server_port;
 
     /* Proxy settings */
     char *proxy_username;

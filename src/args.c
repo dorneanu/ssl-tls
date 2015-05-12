@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "ssl-tls.h"
+#include "connection.h"
 #include "log.h"
 
 void print_usage (globalargs *args) {
@@ -15,12 +16,13 @@ void print_usage (globalargs *args) {
 }
 
 void getoptions (int argc, char **argv, globalargs *globalargs) {
-    static const char *optstring = "vDh?p:u:";
+    static const char *optstring = "vDh?p:u:l:";
 
     static const struct option longopts[] = {
         { "help",       no_argument,        NULL,   'h'},
         { "Debug",      no_argument,        NULL,   'D'},
         { "verbose",    no_argument,        NULL,   'v'},
+        { "listen",     required_argument,  NULL,   'l'},
         { "proxy",      required_argument,  NULL,   'p'},
         { "url",        required_argument,  NULL,   'u'},
         { NULL,         no_argument,        NULL,    0 }
@@ -44,6 +46,9 @@ void getoptions (int argc, char **argv, globalargs *globalargs) {
                 break;
             case 'v':
                 globalargs->verbose++;
+                break;
+            case 'l':
+                globalargs->server_addr = optarg;
                 break;
             case 'p':
                 globalargs->proxy_uri =  optarg;
@@ -77,6 +82,16 @@ int checkoptions (globalargs *args) {
     if (args->debug) {
         debug("Proxy: %s", args->proxy_uri);
         debug("URL: %s", args->url);
+    }
+
+    // Check if server modus
+    if (args->server_addr) {
+        int ret;
+
+        ret = parse_server_addr(
+            args->server_addr,
+            &args->server_ip,
+            &args->server_port);
     }
 
     // Check required options

@@ -36,7 +36,7 @@ int parse_proxy (char *proxy_spec, char **proxy_host, int *proxy_port,
                  char **proxy_user, char **proxy_password) {
     char *login_sep, *colon_sep, *trailer_sep;
     // Check for 'http://' at the beginning
-    if(!strncmp("http://", proxy_spec, 7)) {
+    if (!strncmp("http://", proxy_spec, 7)) {
         proxy_spec += 7;
     }
 
@@ -71,9 +71,26 @@ int parse_proxy (char *proxy_spec, char **proxy_host, int *proxy_port,
             *proxy_port = HTTP_PORT;
             *proxy_host = proxy_spec;
         }
-            
     }
+
     return 1; 
+}
+
+int parse_server_addr(char *server_addr, char **server_hostname, int *server_port)
+{
+    char *hostname_sep, *colon_sep;
+
+    // Check for ":" in "<hostname>:<port>" string
+    if ((hostname_sep = strchr(server_addr, ':'))) {
+        *hostname_sep = '\0'; 
+        *server_hostname = server_addr;
+        *server_port = atoi(hostname_sep + 1);
+        log_info("Hostname: %s", *server_hostname);
+        log_info("Port: %d", *server_port);
+
+    }
+
+    return 1;
 }
 
 int http_connect (char *server_hostname, int server_port) {

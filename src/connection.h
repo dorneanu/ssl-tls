@@ -6,6 +6,7 @@
 #define MAX_GET_COMMAND     255
 
 int parse_url (char*, char**, char**);
+int parse_server_addr (char*, char**, int*);
 int parse_proxy(char*, char**, int*, char**, char**);
 int http_connect (char*, int); 
 int http_get (int, const char*, const char*, const char*, const char*, const char*);

@@ -16,6 +16,7 @@ SRCDIR = src
 OBJS =  $(SRCDIR)/main.o \
 		$(SRCDIR)/args.o \
 		$(SRCDIR)/connection.o \
+		$(SRCDIR)/server.o \
 		$(SRCDIR)/utils/base64.o
 
 $(SRCDIR)%.o: %.c
